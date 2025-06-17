@@ -1,3 +1,0 @@
-/mnt/d/Noam/Computers/Projects/prometheus-mon/build/CMakeFiles/embedded_metrics_uds.dir
-/mnt/d/Noam/Computers/Projects/prometheus-mon/build/CMakeFiles/edit_cache.dir
-/mnt/d/Noam/Computers/Projects/prometheus-mon/build/CMakeFiles/rebuild_cache.dir

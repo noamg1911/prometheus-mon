@@ -1,1 +1,0 @@
-/usr/bin/c++ -g CMakeFiles/embedded_metrics_uds.dir/src/main.cpp.o CMakeFiles/embedded_metrics_uds.dir/src/uds_socket.cpp.o -o embedded_metrics_uds  -Wl,-rpath,/usr/local/lib /usr/local/lib/libprometheus-cpp-pull.so.1.3.0 /usr/local/lib/libprometheus-cpp-core.so.1.3.0 -lpthread

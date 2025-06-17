@@ -30,8 +30,10 @@ namespace monitor
             return false;
         }
 
-        _tx_counter = &_counter_family.Add({{"dir", "tx"}, {"socket", _bind_path}});
-        _rx_counter = &_counter_family.Add({{"dir", "rx"}, {"socket", _bind_path}});
+        _tx_counter = &_counter_family.Add({{"metric", "msg_count"}, {"dir", "tx"}, {"socket", _bind_path}});
+        _tx_bytes_counter = &_counter_family.Add({{"metric", "byte_count"}, {"dir", "tx"}, {"socket", _bind_path}});
+        _rx_counter = &_counter_family.Add({{"metric", "msg_count"}, {"dir", "rx"}, {"socket", _bind_path}});
+        _rx_bytes_counter = &_counter_family.Add({{"metric", "byte_count"}, {"dir", "rx"}, {"socket", _bind_path}});
 
         return true;
     }
@@ -54,16 +56,17 @@ namespace monitor
 
         std::string message = this->generate_random_message();
         const sockaddr_un& addr = _targets[target_name];
-        int send_return_code = sendto(_socket_fd, message.c_str(), message.size(), 0,
-                                      reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
-        if (send_return_code < 0)
+        ssize_t send_size = sendto(_socket_fd, message.c_str(), message.size(), 0,
+                               reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
+        if (send_size < 0)
         {
             // perror("sendto");
-            printf("Error %d sending!\n", send_return_code);
+            printf("Error %zd sending!\n", send_size);
             return false;
         }
 
         _tx_counter->Increment();
+        _tx_bytes_counter->Increment(static_cast<double>(send_size));
         printf("Sent to %s\n", target_name.c_str());
         return true;
     }
@@ -80,10 +83,11 @@ namespace monitor
             while (_receiving) {
                 int ret = poll(&pfd, 1, 500); // 500ms timeout
                 if (ret > 0 && (pfd.revents & POLLIN)) {
-                    ssize_t n = recvfrom(_socket_fd, buffer, sizeof(buffer) - 1, 0, nullptr, nullptr);
-                    if (n > 0) {
-                        buffer[n] = '\0';
+                    ssize_t receive_size = recvfrom(_socket_fd, buffer, sizeof(buffer) - 1, 0, nullptr, nullptr);
+                    if (receive_size > 0) {
+                        buffer[receive_size] = '\0';
                         _rx_counter->Increment();
+                        _rx_bytes_counter->Increment(static_cast<double>(receive_size));
                         printf("received %s\n", buffer);
                     }
                 }
