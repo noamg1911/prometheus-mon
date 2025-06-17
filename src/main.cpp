@@ -15,8 +15,8 @@ int main()
     auto registry = std::make_shared<prometheus::Registry>();
 
     prometheus::Family<prometheus::Counter>& counter_family = prometheus::BuildCounter()
-                                                                            .Name("uds_received_messages_total")
-                                                                            .Help("UDS socket receiving traffic counts")
+                                                                            .Name("uds_messages")
+                                                                            .Help("UDS socket metrics")
                                                                             .Register(*registry);
 
     exposer.RegisterCollectable(registry);
@@ -43,14 +43,4 @@ int main()
     }
 
     return 0;
-    // int curState = 0;
-    // while (true) {
-    //     // uds1.work();
-    //     // uds2.work();
-    //     state.Set(curState % 3);
-    //     curState++;
-    //     std::this_thread::sleep_for(std::chrono::seconds(1));
-    // }
-
-    // return 0;
 }

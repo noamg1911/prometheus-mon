@@ -43,7 +43,9 @@ namespace monitor
         const std::string& _bind_path;
         prometheus::Family<prometheus::Counter>& _counter_family;
         prometheus::Counter* _tx_counter;
+        prometheus::Counter* _tx_bytes_counter;
         prometheus::Counter* _rx_counter;
+        prometheus::Counter* _rx_bytes_counter;
         std::map<std::string, sockaddr_un> _targets;
         std::thread _recv_thread;
         std::atomic<bool> _receiving;
