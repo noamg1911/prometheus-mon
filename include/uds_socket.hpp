@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <atomic>
-
+#include "state_id.hpp"
 #include <prometheus/exposer.h>
 #include <prometheus/registry.h>
 #include <prometheus/counter.h>
@@ -22,7 +22,8 @@ namespace monitor
     class UdsSocket {
     public:
         UdsSocket(const std::string& bind_path,
-                  prometheus::Family<prometheus::Counter>& counter_family);
+                  prometheus::Family<prometheus::Counter>& counter_family,
+                  prometheus::Family<prometheus::Gauge>& gauge_family);
 
         ~UdsSocket();
 
@@ -42,10 +43,14 @@ namespace monitor
         int _socket_fd;
         const std::string& _bind_path;
         prometheus::Family<prometheus::Counter>& _counter_family;
+        prometheus::Family<prometheus::Gauge>& _gauge_family;
         prometheus::Counter* _tx_counter;
         prometheus::Counter* _tx_bytes_counter;
         prometheus::Counter* _rx_counter;
         prometheus::Counter* _rx_bytes_counter;
+        prometheus::Gauge* _state_gauge;
+        StateId _current_state;
+        size_t _total_bytes_sent;
         std::map<std::string, sockaddr_un> _targets;
         std::thread _recv_thread;
         std::atomic<bool> _receiving;

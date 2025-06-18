@@ -3,8 +3,8 @@
 
 enum class StateId
 {
-    first,
-    second,
-    third,
+    init,
+    sent_little,
+    sent_a_lot,
     count,
 };

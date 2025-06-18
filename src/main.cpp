@@ -18,14 +18,18 @@ int main()
                                                                             .Name("uds_messages")
                                                                             .Help("UDS socket metrics")
                                                                             .Register(*registry);
+    prometheus::Family<prometheus::Gauge>& gauge_family = prometheus::BuildGauge()
+                                                                        .Name("uds_state")
+                                                                        .Help("Current state of the UDS socket")
+                                                                        .Register(*registry);
 
     exposer.RegisterCollectable(registry);
 
     const std::string address1 = "/tmp/uds1.sock";
     const std::string address2 = "/tmp/uds2.sock";
 
-    UdsSocket uds1(address1, counter_family);
-    UdsSocket uds2(address2, counter_family);
+    UdsSocket uds1(address1, counter_family, gauge_family);
+    UdsSocket uds2(address2, counter_family, gauge_family);
 
     uds1.setup();
     uds2.setup();

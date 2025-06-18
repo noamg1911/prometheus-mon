@@ -3,10 +3,14 @@
 namespace monitor
 {
     UdsSocket::UdsSocket(const std::string& bind_path,
-                         prometheus::Family<prometheus::Counter>& counter_family) :
+                         prometheus::Family<prometheus::Counter>& counter_family,
+                         prometheus::Family<prometheus::Gauge>& gauge_family) :
     _socket_fd(-1),
     _bind_path(bind_path),
     _counter_family(counter_family),
+    _gauge_family(gauge_family),
+    _current_state(StateId::init),
+    _total_bytes_sent(0),
     _receiving(false)
     {}
 
@@ -35,6 +39,8 @@ namespace monitor
         _rx_counter = &_counter_family.Add({{"metric", "msg_count"}, {"dir", "rx"}, {"socket", _bind_path}});
         _rx_bytes_counter = &_counter_family.Add({{"metric", "byte_count"}, {"dir", "rx"}, {"socket", _bind_path}});
 
+        _state_gauge = &_gauge_family.Add({{"metric", "state"}, {"socket", _bind_path}});
+
         return true;
     }
 
@@ -60,9 +66,20 @@ namespace monitor
                                reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
         if (send_size < 0)
         {
-            // perror("sendto");
             printf("Error %zd sending!\n", send_size);
             return false;
+        }
+        
+        _total_bytes_sent += send_size;
+        if (_total_bytes_sent > 100 && _current_state == StateId::init)
+        {
+            _current_state = StateId::sent_little;
+            _state_gauge->Set(static_cast<double>(_current_state));
+        }
+        if (_total_bytes_sent > 300 && _current_state == StateId::sent_little)
+        {
+            _current_state = StateId::sent_a_lot;
+            _state_gauge->Set(static_cast<double>(_current_state));
         }
 
         _tx_counter->Increment();
